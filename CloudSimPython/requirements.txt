@@ -1,0 +1,3 @@
+# Standard library only; no external deps required for core simulation
+# Optional: psutil for richer stats (commented)
+# psutil==5.9.8
