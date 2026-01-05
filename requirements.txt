@@ -1,0 +1,24 @@
+# =============================================================================
+# Cloud Security gRPC Simulator - Dependencies
+# =============================================================================
+# Install with: pip install -r requirements.txt
+# =============================================================================
+
+# gRPC framework
+grpcio>=1.60.0
+grpcio-tools>=1.60.0
+
+# Password hashing
+bcrypt>=4.0.0
+
+# Environment variable management
+python-dotenv>=1.0.0
+
+# JWT tokens for authentication
+PyJWT>=2.8.0
+
+# REST API framework
+fastapi>=0.100.0
+uvicorn>=0.23.0
+python-multipart>=0.0.6
+email-validator>=2.0.0

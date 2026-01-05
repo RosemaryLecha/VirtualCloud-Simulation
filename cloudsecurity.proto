@@ -1,0 +1,304 @@
+// =============================================================================
+// Cloud Security gRPC Service Definition
+// =============================================================================
+//
+// This file defines the gRPC service contract for the Cloud Security
+// Authentication Service.
+//
+// To regenerate Python stubs after modifying this file, run:
+//   python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. cloudsecurity.proto
+//
+// Generated files:
+//   - cloudsecurity_pb2.py      (message classes)
+//   - cloudsecurity_pb2_grpc.py (service stubs)
+// =============================================================================
+
+syntax = "proto3";
+
+package cloud;
+
+// =============================================================================
+// UserService - Authentication service for user management
+// =============================================================================
+service UserService {
+  // Login with username and password.
+  // On success, sends OTP to user's registered email.
+  rpc login (LoginRequest) returns (LoginResponse);
+
+  // Register a new user account.
+  // Sends verification OTP to the provided email.
+  rpc Signup (SignupRequest) returns (SignupResponse);
+
+  // Verify an OTP code (for signup verification or login 2FA).
+  rpc VerifyOTP (VerifyOTPRequest) returns (VerifyOTPResponse);
+
+  // Resend OTP code to user's email.
+  rpc ResendOTP (ResendOTPRequest) returns (ResendOTPResponse);
+
+  // Request password reset - sends OTP to user's email.
+  rpc ForgotPassword (ForgotPasswordRequest) returns (ForgotPasswordResponse);
+
+  // Reset password with OTP verification.
+  rpc ResetPassword (ResetPasswordRequest) returns (ResetPasswordResponse);
+
+  // Validate a JWT access token.
+  rpc ValidateToken (ValidateTokenRequest) returns (ValidateTokenResponse);
+
+  // Refresh access token using refresh token.
+  rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse);
+
+  // Logout - revoke current session.
+  rpc Logout (LogoutRequest) returns (LogoutResponse);
+
+  // Get all active sessions for current user.
+  rpc GetSessions (GetSessionsRequest) returns (GetSessionsResponse);
+
+  // Revoke a specific session.
+  rpc RevokeSession (RevokeSessionRequest) returns (RevokeSessionResponse);
+
+  // Logout from all devices (revoke all sessions).
+  rpc LogoutAll (LogoutAllRequest) returns (LogoutAllResponse);
+
+  // Get audit logs for the current user.
+  rpc GetAuditLogs (GetAuditLogsRequest) returns (GetAuditLogsResponse);
+}
+
+// =============================================================================
+// Message Definitions
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// Login Messages
+// ---------------------------------------------------------------------------
+
+// Request message for login RPC
+// Note: 'login' field is used for backward compatibility (means username)
+message LoginRequest {
+  string login = 1;     // Username
+  string password = 2;  // Plaintext password
+}
+
+// Alias for backward compatibility with existing code
+message Request {
+  string login = 1;
+  string password = 2;
+}
+
+// Response message for login RPC
+message LoginResponse {
+  string result = 1;    // Result message (success or error)
+}
+
+// Alias for backward compatibility with existing code
+message Response {
+  string result = 1;
+}
+
+// ---------------------------------------------------------------------------
+// Signup Messages
+// ---------------------------------------------------------------------------
+
+// Request message for Signup RPC
+message SignupRequest {
+  string username = 1;  // Desired username (unique)
+  string email = 2;     // Email address (unique)
+  string password = 3;  // Plaintext password (will be hashed)
+}
+
+// Response message for Signup RPC
+message SignupResponse {
+  bool success = 1;     // True if signup initiated successfully
+  string message = 2;   // Result message
+  int32 user_id = 3;    // User ID if successful (for OTP verification)
+}
+
+// ---------------------------------------------------------------------------
+// OTP Verification Messages
+// ---------------------------------------------------------------------------
+
+// Request message for VerifyOTP RPC
+message VerifyOTPRequest {
+  string username = 1;  // Username to verify OTP for
+  string otp_code = 2;  // The 6-digit OTP code
+  string otp_type = 3;  // Type: 'signup', 'login', 'reset'
+}
+
+// Response message for VerifyOTP RPC
+message VerifyOTPResponse {
+  bool success = 1;           // True if OTP verified successfully
+  string message = 2;         // Result message
+  string access_token = 3;    // JWT access token (if login OTP verified)
+  string refresh_token = 4;   // JWT refresh token (if login OTP verified)
+}
+
+// ---------------------------------------------------------------------------
+// Resend OTP Messages
+// ---------------------------------------------------------------------------
+
+// Request message for ResendOTP RPC
+message ResendOTPRequest {
+  string username = 1;  // Username to resend OTP to
+  string otp_type = 2;  // Type: 'signup', 'login', 'reset'
+}
+
+// Response message for ResendOTP RPC
+message ResendOTPResponse {
+  bool success = 1;     // True if OTP resent successfully
+  string message = 2;   // Result message
+}
+
+// ---------------------------------------------------------------------------
+// Forgot Password Messages
+// ---------------------------------------------------------------------------
+
+// Request message for ForgotPassword RPC
+message ForgotPasswordRequest {
+  string email = 1;     // Email address to send reset OTP to
+}
+
+// Response message for ForgotPassword RPC
+message ForgotPasswordResponse {
+  bool success = 1;     // True if reset OTP sent successfully
+  string message = 2;   // Result message
+}
+
+// ---------------------------------------------------------------------------
+// Reset Password Messages
+// ---------------------------------------------------------------------------
+
+// Request message for ResetPassword RPC
+message ResetPasswordRequest {
+  string email = 1;        // Email address
+  string otp_code = 2;     // The 6-digit OTP code from email
+  string new_password = 3; // New password to set
+}
+
+// Response message for ResetPassword RPC
+message ResetPasswordResponse {
+  bool success = 1;     // True if password reset successfully
+  string message = 2;   // Result message
+}
+
+// ---------------------------------------------------------------------------
+// Token Validation Messages
+// ---------------------------------------------------------------------------
+
+// Request message for ValidateToken RPC
+message ValidateTokenRequest {
+  string access_token = 1;   // JWT access token to validate
+}
+
+// Response message for ValidateToken RPC
+message ValidateTokenResponse {
+  bool valid = 1;            // True if token is valid
+  string message = 2;        // Result message
+  string username = 3;       // Username from token (if valid)
+  string email = 4;          // Email from token (if valid)
+  int32 user_id = 5;         // User ID from token (if valid)
+}
+
+// ---------------------------------------------------------------------------
+// Token Refresh Messages
+// ---------------------------------------------------------------------------
+
+// Request message for RefreshToken RPC
+message RefreshTokenRequest {
+  string refresh_token = 1;  // JWT refresh token
+}
+
+// Response message for RefreshToken RPC
+message RefreshTokenResponse {
+  bool success = 1;          // True if new token generated
+  string message = 2;        // Result message
+  string access_token = 3;   // New JWT access token
+}
+
+// ---------------------------------------------------------------------------
+// Session Management Messages
+// ---------------------------------------------------------------------------
+
+// Request message for Logout RPC
+message LogoutRequest {
+  string access_token = 1;   // Current access token to revoke
+}
+
+// Response message for Logout RPC
+message LogoutResponse {
+  bool success = 1;          // True if logout successful
+  string message = 2;        // Result message
+}
+
+// Request message for GetSessions RPC
+message GetSessionsRequest {
+  string access_token = 1;   // Access token to identify user
+}
+
+// Session info for listing
+message SessionInfo {
+  int32 session_id = 1;      // Session ID
+  string token_id = 2;       // Token ID (for revoking)
+  string device_info = 3;    // Device/browser info
+  string ip_address = 4;     // IP address
+  string created_at = 5;     // When session was created
+  string last_activity = 6;  // Last activity timestamp
+  bool is_current = 7;       // True if this is the current session
+}
+
+// Response message for GetSessions RPC
+message GetSessionsResponse {
+  bool success = 1;          // True if sessions retrieved
+  string message = 2;        // Result message
+  repeated SessionInfo sessions = 3;  // List of active sessions
+}
+
+// Request message for RevokeSession RPC
+message RevokeSessionRequest {
+  string access_token = 1;   // Access token to identify user
+  string token_id = 2;       // Token ID of session to revoke
+}
+
+// Response message for RevokeSession RPC
+message RevokeSessionResponse {
+  bool success = 1;          // True if session revoked
+  string message = 2;        // Result message
+}
+
+// Request message for LogoutAll RPC
+message LogoutAllRequest {
+  string access_token = 1;   // Access token to identify user
+  bool keep_current = 2;     // If true, keep current session active
+}
+
+// Response message for LogoutAll RPC
+message LogoutAllResponse {
+  bool success = 1;          // True if all sessions revoked
+  string message = 2;        // Result message
+  int32 sessions_revoked = 3; // Number of sessions revoked
+}
+
+// ---------------------------------------------------------------------------
+// Audit Log Messages
+// ---------------------------------------------------------------------------
+
+// Request message for GetAuditLogs RPC
+message GetAuditLogsRequest {
+  string access_token = 1;   // Access token to identify user
+  int32 limit = 2;           // Max number of logs to return (default: 50)
+  string event_type = 3;     // Optional: filter by event type
+}
+
+// Single audit log entry
+message AuditLogEntry {
+  int32 id = 1;              // Log entry ID
+  string event_type = 2;     // Type of event (LOGIN_SUCCESS, LOGOUT, etc.)
+  string details = 3;        // Event details
+  bool success = 4;          // Whether the event was successful
+  string created_at = 5;     // Timestamp of the event
+}
+
+// Response message for GetAuditLogs RPC
+message GetAuditLogsResponse {
+  bool success = 1;          // True if logs retrieved
+  string message = 2;        // Result message
+  repeated AuditLogEntry logs = 3; // List of audit log entries
+}

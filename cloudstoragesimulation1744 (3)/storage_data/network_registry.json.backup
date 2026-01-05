@@ -1,0 +1,43 @@
+{
+  "file_registry": {
+    "b951dffaeea923df185c47a200c71730": {
+      "file_id": "b951dffaeea923df185c47a200c71730",
+      "file_name": "me.txt",
+      "file_size": 15,
+      "primary_nodes": [
+        "node1"
+      ],
+      "replica_nodes": [],
+      "status": "degraded",
+      "upload_time": 1764068029.2094295,
+      "checksum": "78454eecc117a088c2d3651b688b4784",
+      "replication_factor": 1,
+      "target_replicas": 2
+    },
+    "7a17b10a8e38250830bbe419b4e4614f": {
+      "file_id": "7a17b10a8e38250830bbe419b4e4614f",
+      "file_name": "hs.txt",
+      "file_size": 33,
+      "primary_nodes": [
+        "node1"
+      ],
+      "replica_nodes": [
+        "node2"
+      ],
+      "status": "available",
+      "upload_time": 1764068442.6632736,
+      "checksum": "be6917d852a08f5d893b5d2bf42e4a5c",
+      "replication_factor": 2,
+      "target_replicas": 2
+    }
+  },
+  "node_files": {
+    "node1": [
+      "7a17b10a8e38250830bbe419b4e4614f",
+      "b951dffaeea923df185c47a200c71730"
+    ],
+    "node2": [
+      "7a17b10a8e38250830bbe419b4e4614f"
+    ]
+  }
+}

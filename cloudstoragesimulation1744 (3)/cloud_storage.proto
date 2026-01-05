@@ -1,0 +1,274 @@
+syntax = "proto3";
+
+package cloud_storage;
+
+// Node registration and management service
+service NodeManagement {
+    rpc RegisterNode(RegisterNodeRequest) returns (RegisterNodeResponse);
+    rpc SendHeartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+    rpc NotifyActive(ActiveNotificationRequest) returns (ActiveNotificationResponse);
+    rpc GetNodeInfo(NodeInfoRequest) returns (NodeInfoResponse);
+}
+
+// File management service
+service FileManagement {
+    rpc UploadFile(UploadFileRequest) returns (UploadFileResponse);
+    rpc DownloadFile(DownloadFileRequest) returns (DownloadFileResponse);
+    rpc ListFiles(ListFilesRequest) returns (ListFilesResponse);
+    rpc NotifyUploadComplete(UploadCompleteRequest) returns (UploadCompleteResponse);
+    rpc ReplicateFile(ReplicateFileRequest) returns (ReplicateFileResponse);
+    
+    rpc StreamUpload(stream FileChunk) returns (StreamUploadResponse);
+    rpc StreamDownload(StreamDownloadRequest) returns (stream FileChunk);
+    rpc GetAvailableReplicas(ReplicaRequest) returns (ReplicaResponse);
+}
+
+// File transfer service for node-to-node communication
+service FileTransfer {
+    rpc TransferFile(TransferFileRequest) returns (TransferFileResponse);
+    rpc TransferChunk(TransferChunkRequest) returns (TransferChunkResponse);
+    rpc ConnectNodes(ConnectNodesRequest) returns (ConnectNodesResponse);
+    
+    rpc StreamTransfer(stream FileChunk) returns (StreamTransferResponse);
+}
+
+// Node registration messages
+message RegisterNodeRequest {
+    string node_id = 1;
+    string host = 2;
+    int32 port = 3;
+    NodeCapacity capacity = 4;
+    NetworkInfo network_info = 5;
+}
+
+message RegisterNodeResponse {
+    string status = 1;
+    string error = 2;
+}
+
+message HeartbeatRequest {
+    string node_id = 1;
+    int64 timestamp = 2;
+}
+
+message HeartbeatResponse {
+    string status = 1;
+    string error = 2;
+}
+
+message ActiveNotificationRequest {
+    string node_id = 1;
+}
+
+message ActiveNotificationResponse {
+    string status = 1;
+}
+
+message NodeInfoRequest {
+    string node_id = 1;
+}
+
+message NodeInfoResponse {
+    string status = 1;
+    NodeInfo node_info = 2;
+}
+
+// File management messages
+message UploadFileRequest {
+    string node_id = 1;
+    string file_id = 2;
+    string file_name = 3;
+    int64 file_size = 4;
+    string checksum = 5;
+}
+
+message UploadFileResponse {
+    string status = 1;
+    string error = 2;
+    string primary_node = 3;
+    repeated string replica_nodes = 4;
+    map<string, NodeInfo> node_info = 5;
+}
+
+message DownloadFileRequest {
+    string node_id = 1;
+    string file_id = 2;
+    string file_name = 3;
+}
+
+message DownloadFileResponse {
+    string status = 1;
+    string error = 2;
+    string file_id = 3;
+    string file_name = 4;
+    int64 file_size = 5;
+    string source_node = 6;
+    NodeInfo node_info = 7;
+}
+
+message ListFilesRequest {
+    string node_id = 1;
+}
+
+message ListFilesResponse {
+    string status = 1;
+    repeated FileInfo files = 2;
+}
+
+message UploadCompleteRequest {
+    string node_id = 1;
+    string file_id = 2;
+}
+
+message UploadCompleteResponse {
+    string status = 1;
+    string error = 2;
+}
+
+message ReplicateFileRequest {
+    string file_id = 1;
+    string source_node = 2;
+    NodeInfo source_info = 3;
+}
+
+message ReplicateFileResponse {
+    string status = 1;
+    string error = 2;
+}
+
+// File transfer messages
+message TransferFileRequest {
+    string file_id = 1;
+    string requesting_node = 2;
+}
+
+message TransferFileResponse {
+    string status = 1;
+    string error = 2;
+    bytes file_data = 3;
+    FileMetadata metadata = 4;
+}
+
+message TransferChunkRequest {
+    string file_id = 1;
+    int32 chunk_id = 2;
+    bytes chunk_data = 3;
+    string checksum = 4;
+    int32 sequence_number = 5;
+}
+
+message TransferChunkResponse {
+    string status = 1;
+    string error = 2;
+    int32 chunk_id = 3;
+    bool transfer_complete = 4;
+}
+
+message ConnectNodesRequest {
+    string node_id = 1;
+    string host = 2;
+    int32 port = 3;
+    int64 bandwidth = 4;
+}
+
+message ConnectNodesResponse {
+    string status = 1;
+}
+
+// Data structures
+message NodeCapacity {
+    int32 cpu = 1;
+    int32 memory = 2;
+    int64 storage = 3;
+    int64 bandwidth = 4;
+}
+
+message NetworkInfo {
+    string ip_address = 1;
+    string mac_address = 2;
+    string interface = 3;
+    string subnet_mask = 4;
+    string gateway = 5;
+}
+
+message NodeInfo {
+    string node_id = 1;
+    string host = 2;
+    int32 port = 3;
+    NodeCapacity capacity = 4;
+    NetworkInfo network_info = 5;
+    string status = 6;
+    int64 last_seen = 7;
+}
+
+message FileInfo {
+    string file_id = 1;
+    string file_name = 2;
+    int64 file_size = 3;
+    string status = 4;
+    repeated string primary_nodes = 5;
+    repeated string replica_nodes = 6;
+    int64 upload_time = 7;
+    string checksum = 8;
+}
+
+message FileMetadata {
+    string file_name = 1;
+    int64 file_size = 2;
+    string checksum = 3;
+    int64 upload_time = 4;
+}
+
+message FileChunkInfo {
+    int32 chunk_id = 1;
+    int64 size = 2;
+    string checksum = 3;
+    string status = 4;
+    string stored_node = 5;
+}
+
+// Streaming-specific messages
+message FileChunk {
+    string file_id = 1;
+    string file_name = 2;
+    int64 total_size = 3;
+    int32 chunk_number = 4;
+    int32 total_chunks = 5;
+    bytes data = 6;
+    string checksum = 7;
+    bool is_last_chunk = 8;
+    string node_id = 9;
+}
+
+message StreamUploadResponse {
+    string status = 1;
+    string error = 2;
+    string file_id = 3;
+    repeated string replica_nodes = 4;
+    int64 bytes_received = 5;
+}
+
+message StreamDownloadRequest {
+    string file_id = 1;
+    string node_id = 2;
+    int32 start_chunk = 3;
+    int32 end_chunk = 4;
+}
+
+message StreamTransferResponse {
+    string status = 1;
+    string error = 2;
+    string file_id = 3;
+    int64 bytes_transferred = 4;
+}
+
+message ReplicaRequest {
+    string file_id = 1;
+    string requesting_node = 2;
+}
+
+message ReplicaResponse {
+    string status = 1;
+    repeated NodeInfo available_nodes = 2;
+    string primary_node = 3;
+}
